@@ -1,5 +1,5 @@
 ---
-import Practice from "../components/PracticeCard";
+import Practice from "../components/PracticeCard.astro";
 import "katex/dist/katex.min.css"
 import "../styles/global.css";
 ---
@@ -13,7 +13,7 @@ import "../styles/global.css";
     </head>
     <body class="flex flex-col items-center bg-gray-950 text-gray-100">
         <div class="w-[90%] lg:w-[50%] mt-[2%] py-[1%] bg-gray-900/75 border border-gray-800">
-			<Practice client:load></Practice>
+			<Practice />
 		</div>
     </body>
 </html>

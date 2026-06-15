@@ -25,9 +25,9 @@ export type Formula = {
 
 export type Session = {
     formula: Formula;
-    elapsedTime: number;
-    answer: string;
+    input: string;
     correct: boolean;
+    duration: number;
 };
 
 const getRandomElement = <T>(a: T[]) => {
@@ -36,8 +36,8 @@ const getRandomElement = <T>(a: T[]) => {
     return a[Math.floor(Math.random() * a.length)];
 };
 
-function generateFormula(option: Options) {
-    const multiplicandMagnitudes = option.multiplicandRanges.map((range) => range.end - range.start + 1);
+function generateFormula(options: Options) {
+    const multiplicandMagnitudes = options.multiplicandRanges.map((range) => range.end - range.start + 1);
     const multiplicandRangeSize = multiplicandMagnitudes.reduce((total, current) => total + current);
 
     // min: 1, max: multiplicandRangeSize
@@ -48,7 +48,7 @@ function generateFormula(option: Options) {
         for (let i = 0; i < multiplicandMagnitudes.length; i++) {
             currentCumulativeMagnitude += multiplicandMagnitudes[i];
             if (currentCumulativeMagnitude >= cumulativeMagnitude) {
-                return option.multiplicandRanges[i];
+                return options.multiplicandRanges[i];
             }
         }
         return null;
@@ -62,9 +62,9 @@ function generateFormula(option: Options) {
         return multiplicandRange.start + Math.floor(Math.random() * (Math.abs(multiplicandRange.end - multiplicandRange.start) + 1));
     };
 
-    const multiplier = getRandomElement(option.multipliers);
+    const multiplier = getRandomElement(options.multipliers);
     if (multiplier == null) return null;
-    const hiddenTerm = getRandomElement(option.allowedToHide);
+    const hiddenTerm = getRandomElement(options.allowedToHide);
     if (hiddenTerm == null) return null;
 
     const multiplicand = getRandomMultiplicand();
@@ -90,12 +90,19 @@ function generateFormula(option: Options) {
     } as Formula;
 }
 
-(() => {
-    generateFormula({
-        multiplicandRanges: [{ start: 1, end: 5 }],
-        multipliers: [2],
-        allowedToHide: [HiddenTerm.RESULT],
-    });
-})();
+function generateUniqueFormula(options: Options, history?: Formula[], lookBackLength: number = 4) {
+    if (!options) return null;
+    let formula = generateFormula(options);
 
-export { HiddenTerm, generateFormula };
+    const filteredResults = history?.map((v) => v.result).slice(0, lookBackLength);
+
+    let attempts = 0;
+    while (formula && filteredResults && filteredResults.includes(formula.result) && attempts < 10) {
+        formula = generateFormula(options);
+        attempts++;
+    }
+
+    return formula;
+}
+
+export { HiddenTerm, generateFormula, generateUniqueFormula };
