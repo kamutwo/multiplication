@@ -23,6 +23,13 @@ export type Formula = {
     hiddenTerm: HiddenTerm;
 };
 
+export type Session = {
+    formula: Formula;
+    elapsedTime: number;
+    answer: string;
+    correct: boolean;
+};
+
 const getRandomElement = <T>(a: T[]) => {
     if (a.length == 0) return null;
     if (a.length == 1) return a[0];
@@ -91,7 +98,4 @@ function generateFormula(option: Options) {
     });
 })();
 
-export {
-    HiddenTerm,
-    generateFormula,
-};
+export { HiddenTerm, generateFormula };
