@@ -1,13 +1,31 @@
 import { useEffect, useState } from "react";
-import { type Formula, generateFormula, HiddenTerm } from "../scripts/session";
+import { type Formula, generateFormula, type Session } from "../scripts/session";
 import { $sessionOption, $sessionHistory } from "../scripts/global";
 import KatexFormula from "./KatexFormula";
 
-export default function Practice() {
+export default function PracticeCard() {
     const [value, setValue] = useState("");
     const [invalid, setInvalid] = useState(false);
+    const [sessionTimestamp, setSessionTimestamp] = useState(0);
+    const [saved, setSaved] = useState(false);
 
     const [currentFormula, setFormula] = useState<Formula | null>(null);
+
+    const saveSessionToHistory = (answer: string, correct: boolean) => {
+        const history = $sessionHistory.get();
+        if (!saved && currentFormula != null) {
+            setSaved(true);
+            $sessionHistory.set([
+                ...history,
+                {
+                    formula: currentFormula,
+                    correct: correct,
+                    answer: answer,
+                    elapsedTime: Date.now() - sessionTimestamp,
+                },
+            ]);
+        }
+    };
 
     const generateSession = () => {
         const options = $sessionOption.get();
@@ -24,33 +42,37 @@ export default function Practice() {
 
         setValue("");
         setInvalid(false);
+        setSaved(false);
         setFormula(formula);
+        setSessionTimestamp(Date.now());
     };
 
-    const validateAnswer = (answer: number) => {
+    const handleAnswer = (answerString: string) => {
+        const answer = Number(answerString);
         if (currentFormula == null) return;
 
-        if (!isNaN(answer) && Math.abs(answer - currentFormula.answer) < 0.01) {
-            setValue("");
+        if (currentFormula != null && !isNaN(answer) && Math.abs(answer - currentFormula.answer) < 0.01) {
+            saveSessionToHistory(answerString, true);
             generateSession();
         } else {
             setInvalid(true);
+            saveSessionToHistory(answerString, false);
         }
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const inputValue = e.currentTarget.value;
+        const answerString = e.currentTarget.value;
 
         const regex = /^[+\-]?$|[+\-]?(?:0|[0-9]\d*)(?:[\.\,]|[\.\,]\d+)?(?:(?:[eE]|[eE][+\-])$|[eE][+\-]?\d+)?$/;
-        if (regex.test(inputValue)) {
-            setValue(inputValue);
+        if (regex.test(answerString)) {
+            setValue(answerString);
         }
 
         if (currentFormula == null) return;
 
-        const value = Number(inputValue);
-        if (!isNaN(value) && Math.floor(Math.log10(value) + 1) == Math.floor(Math.log10(currentFormula.answer) + 1)) {
-            validateAnswer(value);
+        const answer = Number(answerString);
+        if (!isNaN(answer) && Math.floor(Math.log10(answer) + 1) == Math.floor(Math.log10(currentFormula.answer) + 1)) {
+            handleAnswer(answerString);
         }
     };
 
@@ -59,8 +81,7 @@ export default function Practice() {
             if (invalid || e.currentTarget.value.trim() == "") {
                 generateSession();
             } else {
-                const value = Number(e.currentTarget.value);
-                validateAnswer(value);
+                handleAnswer(e.currentTarget.value);
             }
         }
     };
