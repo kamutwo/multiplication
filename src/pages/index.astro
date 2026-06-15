@@ -1,17 +1,19 @@
 ---
+import Practice from "../components/Practice";
+import "katex/dist/katex.min.css"
 import "../styles/global.css";
 ---
 
 <html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-
-		<script is:inline defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
-	</head>
-	<body>
-		<h1>\(10+10\)</h1>
-	</body>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width" />
+        <meta name="generator" content={Astro.generator} />
+        <title>Multiplication</title>
+    </head>
+    <body class="flex flex-col items-center bg-gray-950 text-gray-100">
+        <div class="w-[90%] lg:w-[50%] mt-[2%] py-[1%] bg-gray-900/75 border border-gray-800">
+			<Practice client:load></Practice>
+		</div>
+    </body>
 </html>
