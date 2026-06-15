@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { generateFormula, HiddenTerm } from "../scripts/Session";
 import Math from "./Math";
 
 export default function Practice() {
@@ -30,7 +31,19 @@ export default function Practice() {
             <h1 className="font-bold text-gray-700">Practice</h1>
             <div className="w-[95%] my-2 border border-gray-800"></div>
             <div className="flex items-center min-h-16">
-                <Math formula="1\times1" />
+                <Math
+                    formula={
+                        generateFormula({
+                            multiplicandRanges: [
+                                { start: 1, end: 2 },
+                                { start: 4, end: 5 },
+                                { start: 7, end: 8 },
+                            ],
+                            multipliers: [2],
+                            allowedToHide: [HiddenTerm.RESULT],
+                        })!
+                    }
+                />
             </div>
             <input
                 value={value}
@@ -41,7 +54,7 @@ export default function Practice() {
                 type="text"
                 inputMode="numeric"
                 id="answer"
-                className={`py-2 rounded-md bg-transparent outline-none border ${invalid ? "border-red-500/80 text-red-500/80" : "border-gray-800 focus:border-blue-500/70"} text-center`}
+                className={`py-2 px-4 rounded-md bg-transparent outline-none border ${invalid ? "border-red-500/80 text-red-500/80" : "border-gray-800 focus:border-blue-500/70"} text-center`}
             />
             {invalid && <p className="mt-1 text-xs text-red-500/80">?</p>}
         </div>
