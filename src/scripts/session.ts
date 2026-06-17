@@ -4,13 +4,13 @@ enum HiddenTerm {
     RESULT,
 }
 
-export type MultiplicandRange = {
+export type Range = {
     start: number;
     end: number;
 };
 
 export type Options = {
-    multiplicandRanges: MultiplicandRange[];
+    multiplicandRanges: Range[];
     multipliers: number[];
     allowedToHide: HiddenTerm[];
 };
@@ -30,44 +30,54 @@ export type Session = {
     duration: number;
 };
 
-const getRandomElement = <T>(a: T[]) => {
+function getBoundsOfRanges<T extends Range>(ranges: T[]) {
+    const rangeFrequencies = ranges.map((r) => Math.abs(r.end - r.start) + 1);
+    const totalData = rangeFrequencies.reduce((total, next) => total + next);
+
+    return {
+        rangeFrequencies,
+        totalData,
+    };
+}
+
+function getRangeFromGroupedData<T extends Range>(index: number, ranges: T[]) {
+    const { rangeFrequencies, totalData } = getBoundsOfRanges(ranges);
+
+    if (index > totalData - 1 || index < 0) return null;
+
+    let currentCumulativeIndex = -1;
+    for (let i = 0; i < ranges.length; i++) {
+        currentCumulativeIndex += rangeFrequencies[i];
+        if (index >= currentCumulativeIndex) {
+            return ranges[i];
+        }
+    }
+    return null;
+}
+
+function getRandomValueFromRanges<T extends Range>(ranges: T[]) {
+    const { totalData } = getBoundsOfRanges(ranges);
+
+    const randomRangesIndex = Math.floor(Math.random() * totalData);
+    const range = getRangeFromGroupedData(randomRangesIndex, ranges);
+    if (range == null) return null;
+
+    return range.start + Math.floor(Math.random() * (Math.abs(range.end - range.start) + 1));
+}
+
+function getRandomValueFromArray<T>(a: T[]) {
     if (a.length == 0) return null;
     if (a.length == 1) return a[0];
     return a[Math.floor(Math.random() * a.length)];
-};
+}
 
 function generateFormula(options: Options) {
-    const multiplicandMagnitudes = options.multiplicandRanges.map((range) => range.end - range.start + 1);
-    const multiplicandRangeSize = multiplicandMagnitudes.reduce((total, current) => total + current);
-
-    // min: 1, max: multiplicandRangeSize
-    const getMultiplicandRange = (cumulativeMagnitude: number) => {
-        if (cumulativeMagnitude > multiplicandRangeSize || cumulativeMagnitude < 1) return null;
-
-        let currentCumulativeMagnitude = 0;
-        for (let i = 0; i < multiplicandMagnitudes.length; i++) {
-            currentCumulativeMagnitude += multiplicandMagnitudes[i];
-            if (currentCumulativeMagnitude >= cumulativeMagnitude) {
-                return options.multiplicandRanges[i];
-            }
-        }
-        return null;
-    };
-
-    const getRandomMultiplicand = () => {
-        const randomCumulativeMagnitude = Math.floor(Math.random() * multiplicandRangeSize) + 1;
-        const multiplicandRange = getMultiplicandRange(randomCumulativeMagnitude);
-        if (multiplicandRange == null) return null;
-
-        return multiplicandRange.start + Math.floor(Math.random() * (Math.abs(multiplicandRange.end - multiplicandRange.start) + 1));
-    };
-
-    const multiplier = getRandomElement(options.multipliers);
+    const multiplier = getRandomValueFromArray(options.multipliers);
     if (multiplier == null) return null;
-    const hiddenTerm = getRandomElement(options.allowedToHide);
+    const hiddenTerm = getRandomValueFromArray(options.allowedToHide);
     if (hiddenTerm == null) return null;
 
-    const multiplicand = getRandomMultiplicand();
+    const multiplicand = getRandomValueFromRanges(options.multiplicandRanges);
     if (multiplicand == null) return null;
 
     const result = multiplicand * multiplier;
