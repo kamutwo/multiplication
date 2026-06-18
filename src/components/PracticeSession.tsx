@@ -25,7 +25,7 @@ export default function PracticeSession() {
 
         if (formula == null) return;
         const valNumber = Number(val);
-        if (!isNaN(valNumber) && Math.floor(Math.log10(valNumber) + 1) == Math.floor(Math.log10(formula.answer) + 1)) {
+        if (!isNaN(valNumber) && Math.floor(Math.log10(Math.abs(valNumber)) + 1) == Math.floor(Math.log10(Math.abs(formula.answer)) + 1)) {
             handleAnswer(val);
         }
     };
@@ -40,6 +40,7 @@ export default function PracticeSession() {
     };
 
     useEffect(() => {
+        setHideAnswer($sessionOption.get().showAnswer);
         const unbind = $sessionOption.listen((_v, _ov, key) => {
             if (key != "showAnswer") return;
             setHideAnswer($sessionOption.get().showAnswer);
