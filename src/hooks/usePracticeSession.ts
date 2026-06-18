@@ -57,6 +57,12 @@ export default function usePracticeSession() {
 
     useEffect(() => {
         generateSession();
+        const unbind = $sessionOption.listen((_v, _oV, key) => {
+            if (key != "multiplicandRanges" && key != "multiplierRanges") return;
+            generateSession();
+        });
+
+        return () => unbind();
     }, []);
 
     return {

@@ -1,9 +1,11 @@
 ---
+import PracticeOptions from "./PracticeOptions";
 import PracticeSession from "./PracticeSession";
 ---
 
 <div class="flex flex-col items-center">
     <h1 class="font-bold text-gray-700">Practice</h1>
-    <div class="w-[95%] my-2 border border-gray-800"></div>
-    <PracticeSession client:load />
+    <div class="w-full my-2 border border-gray-800"></div>
 </div>
+<PracticeSession client:load />
+<PracticeOptions client:load />

@@ -10,8 +10,9 @@ export type Range = {
 };
 
 export type Options = {
+    showAnswer: boolean;
     multiplicandRanges: Range[];
-    multipliers: number[];
+    multiplierRanges: Range[];
     allowedToHide: HiddenTerm[];
 };
 
@@ -31,6 +32,8 @@ export type Session = {
 };
 
 function getBoundsOfRanges<T extends Range>(ranges: T[]) {
+    if (ranges.length == 0) return { rangeFrequencies: [], totalData: 0 };
+
     const rangeFrequencies = ranges.map((r) => Math.abs(r.end - r.start) + 1);
     const totalData = rangeFrequencies.reduce((total, next) => total + next);
 
@@ -40,7 +43,7 @@ function getBoundsOfRanges<T extends Range>(ranges: T[]) {
     };
 }
 
-function getRangeFromGroupedData<T extends Range>(index: number, ranges: T[]) {
+function getRangeFromRanges<T extends Range>(index: number, ranges: T[]) {
     const { rangeFrequencies, totalData } = getBoundsOfRanges(ranges);
 
     if (index > totalData - 1 || index < 0) return null;
@@ -48,7 +51,7 @@ function getRangeFromGroupedData<T extends Range>(index: number, ranges: T[]) {
     let currentCumulativeIndex = -1;
     for (let i = 0; i < ranges.length; i++) {
         currentCumulativeIndex += rangeFrequencies[i];
-        if (index >= currentCumulativeIndex) {
+        if (index <= currentCumulativeIndex) {
             return ranges[i];
         }
     }
@@ -59,10 +62,13 @@ function getRandomValueFromRanges<T extends Range>(ranges: T[]) {
     const { totalData } = getBoundsOfRanges(ranges);
 
     const randomRangesIndex = Math.floor(Math.random() * totalData);
-    const range = getRangeFromGroupedData(randomRangesIndex, ranges);
+    const range = getRangeFromRanges(randomRangesIndex, ranges);
     if (range == null) return null;
 
-    return range.start + Math.floor(Math.random() * (Math.abs(range.end - range.start) + 1));
+    const left = Math.min(range.start, range.end);
+    const right = Math.max(range.start, range.end);
+
+    return left + Math.floor(Math.random() * (Math.abs(right - left) + 1));
 }
 
 function getRandomValueFromArray<T>(a: T[]) {
@@ -72,13 +78,14 @@ function getRandomValueFromArray<T>(a: T[]) {
 }
 
 function generateFormula(options: Options) {
-    const multiplier = getRandomValueFromArray(options.multipliers);
-    if (multiplier == null) return null;
     const hiddenTerm = getRandomValueFromArray(options.allowedToHide);
     if (hiddenTerm == null) return null;
 
     const multiplicand = getRandomValueFromRanges(options.multiplicandRanges);
     if (multiplicand == null) return null;
+
+    const multiplier = getRandomValueFromRanges(options.multiplierRanges);
+    if (multiplier == null) return null;
 
     const result = multiplicand * multiplier;
     let answer = 0;

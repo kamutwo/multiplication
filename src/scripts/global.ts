@@ -3,7 +3,8 @@ import { type Session, type Options, HiddenTerm } from "./session";
 
 export const $sessionHistory = atom<Session[]>([]);
 export const $sessionOption = map<Options>({
-    multiplicandRanges: [{ start: 2, end: 20 }],
-    multipliers: [2],
+    showAnswer: true,
+    multiplicandRanges: [],
+    multiplierRanges: [],
     allowedToHide: [HiddenTerm.RESULT],
 });
