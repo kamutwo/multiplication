@@ -1,7 +1,7 @@
 import KatexFormula from "./KatexFormula";
 import usePracticeSession from "../hooks/usePracticeSession";
 import { useEffect, useState } from "react";
-import { $sessionOption } from "../scripts/global";
+import { $sessionOptions } from "../scripts/global";
 
 export default function PracticeSession() {
     const {
@@ -34,16 +34,16 @@ export default function PracticeSession() {
         if (e.key !== "Enter") return;
 
         handleAnswer(e.currentTarget.value);
-        if (isIncorrect || e.currentTarget.value.trim() == "") {
+        if (isIncorrect) {
             generateSession();
         }
     };
 
     useEffect(() => {
-        setHideAnswer($sessionOption.get().showAnswer);
-        const unbind = $sessionOption.listen((_v, _ov, key) => {
+        setHideAnswer($sessionOptions.get().showAnswer);
+        const unbind = $sessionOptions.listen((_v, _ov, key) => {
             if (key != "showAnswer") return;
-            setHideAnswer($sessionOption.get().showAnswer);
+            setHideAnswer($sessionOptions.get().showAnswer);
         });
 
         return () => unbind();

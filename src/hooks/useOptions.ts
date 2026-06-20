@@ -1,11 +1,19 @@
 import React, { useEffect, useState } from "react";
-import { $sessionOption } from "../scripts/global";
+import { $sessionOptions } from "../scripts/global";
 import { type Range } from "../scripts/session";
+import { persistentMap } from "@nanostores/persistent";
+
+const $localOptions = persistentMap("sessionOptions", {
+    showAnswer: "true",
+    multiplicandInput: "1-20",
+    multiplierInput: "1-20",
+});
 
 export default function useOptions() {
-    const [showAnswerValue, setShowAnswerValue] = useState(true);
-    const [multiplicandRangesValue, setMultiplicandRangesValue] = useState("1-10 11 12:20");
-    const [multiplierRangesValue, setMultiplierRangesValue] = useState("-2--1 1-2");
+    const [showAnswerValue, setShowAnswerValue] = useState($localOptions.get().showAnswer == "true");
+    const [multiplicandRangesValue, setMultiplicandRangesValue] = useState($localOptions.get().multiplicandInput);
+    const [multiplierRangesValue, setMultiplierRangesValue] = useState($localOptions.get().multiplierInput);
+
     const [multiplicandRangesInvalid, setMultiplicandRangesInvalid] = useState(false);
     const [multiplierRangesInvalid, setMultiplierRangesInvalid] = useState(false);
 
@@ -13,7 +21,8 @@ export default function useOptions() {
         const newValue = !showAnswerValue;
 
         setShowAnswerValue(newValue);
-        $sessionOption.setKey("showAnswer", newValue);
+        $sessionOptions.setKey("showAnswer", newValue);
+        $localOptions.setKey("showAnswer", String(newValue));
     };
 
     const parseTextToRanges = (text: string) => {
@@ -34,23 +43,27 @@ export default function useOptions() {
 
     const handleMultiplicandRangesChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
         setMultiplicandRangesValue(e.currentTarget.value);
+        $localOptions.setKey("multiplicandInput", e.currentTarget.value);
+
         const ranges = parseTextToRanges(e.currentTarget.value.trim());
-        $sessionOption.setKey("multiplicandRanges", ranges);
+        $sessionOptions.setKey("multiplicandRanges", ranges);
 
         setMultiplicandRangesInvalid(ranges.length == 0);
     };
 
     const handleMultiplierRangesChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
         setMultiplierRangesValue(e.currentTarget.value);
+        $localOptions.setKey("multiplierInput", e.currentTarget.value);
+
         const ranges = parseTextToRanges(e.currentTarget.value.trim());
-        $sessionOption.setKey("multiplierRanges", ranges);
+        $sessionOptions.setKey("multiplierRanges", ranges);
 
         setMultiplierRangesInvalid(ranges.length == 0);
     };
 
     useEffect(() => {
-        $sessionOption.setKey("multiplicandRanges", parseTextToRanges(multiplicandRangesValue));
-        $sessionOption.setKey("multiplierRanges", parseTextToRanges(multiplierRangesValue));
+        $sessionOptions.setKey("multiplicandRanges", parseTextToRanges(multiplicandRangesValue));
+        $sessionOptions.setKey("multiplierRanges", parseTextToRanges(multiplierRangesValue));
     }, []);
 
     return {

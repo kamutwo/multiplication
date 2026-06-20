@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { generateFormula, generateUniqueFormula, type Formula, type Session } from "../scripts/session";
-import { $sessionOption, $sessionHistory } from "../scripts/global";
+import { generateUniqueFormula, type Formula, type Session } from "../scripts/session";
+import { $sessionOptions, $sessionHistory } from "../scripts/global";
 
 export default function usePracticeSession() {
     const [formula, setFormula] = useState<Formula | null>(null);
@@ -11,18 +11,23 @@ export default function usePracticeSession() {
     const [sessionTimestamp, setSessionTimestamp] = useState(0);
     const [saved, setSaved] = useState(false);
 
+    const [tabbedOutTimestamp, setTabbedOutTimestamp] = useState<null | number>(null);
+    const [pausedDuration, setPausedDuration] = useState(0);
+
     const generateSession = () => {
-        const options = $sessionOption.get();
+        const options = $sessionOptions.get();
         const history = $sessionHistory.get();
         const formulaHistory = history.map((session) => session.formula);
 
-        const newFormula = generateUniqueFormula(options, formulaHistory);
+        const newFormula = generateUniqueFormula(options, formulaHistory, 4);
 
         setFormula(newFormula);
         setInputValue("");
         setIsIncorrect(false);
         setSessionTimestamp(Date.now());
         setSaved(false);
+        setTabbedOutTimestamp(null);
+        setPausedDuration(0);
     };
 
     const saveToHistory = (session: Session) => {
@@ -30,8 +35,8 @@ export default function usePracticeSession() {
         setSaved(true);
 
         let history = $sessionHistory.get();
-        if (history.length >= 25) {
-            history = history.slice(0, 24);
+        if (history.length >= 500) {
+            history = history.slice(0, 499);
         }
 
         $sessionHistory.set([session, ...history]);
@@ -47,7 +52,7 @@ export default function usePracticeSession() {
             formula,
             correct: isCorrect,
             input: answer.toString(),
-            duration: Date.now() - sessionTimestamp,
+            duration: Math.max(0, Date.now() - sessionTimestamp - pausedDuration),
         };
         saveToHistory(session);
 
@@ -57,12 +62,26 @@ export default function usePracticeSession() {
 
     useEffect(() => {
         generateSession();
-        const unbind = $sessionOption.listen((_v, _oV, key) => {
+        const unbindSessionOptionListener = $sessionOptions.listen((_v, _oV, key) => {
             if (key != "multiplicandRanges" && key != "multiplierRanges") return;
             generateSession();
         });
 
-        return () => unbind();
+        const visibilityChangeListener = (e: Event) => {
+            if (document.hidden) {
+                setTabbedOutTimestamp(Date.now());
+            } else {
+                if (tabbedOutTimestamp != null) {
+                    setPausedDuration(Date.now() - tabbedOutTimestamp);
+                }
+            }
+        };
+        document.addEventListener("visibilitychange", visibilityChangeListener);
+
+        return () => {
+            unbindSessionOptionListener();
+            document.removeEventListener("visibilitychange", visibilityChangeListener);
+        };
     }, []);
 
     return {
