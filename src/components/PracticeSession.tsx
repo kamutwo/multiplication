@@ -13,7 +13,7 @@ export default function PracticeSession() {
         handleAnswer,
         generateSession,
     } = usePracticeSession();
-    const [hideAnswer, setHideAnswer] = useState(false);
+    const [hideAnswer, setHideAnswer] = useState($sessionOptions.get().showAnswer);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const val = e.currentTarget.value;
@@ -40,7 +40,6 @@ export default function PracticeSession() {
     };
 
     useEffect(() => {
-        setHideAnswer($sessionOptions.get().showAnswer);
         const unbind = $sessionOptions.listen((_v, _ov, key) => {
             if (key != "showAnswer") return;
             setHideAnswer($sessionOptions.get().showAnswer);

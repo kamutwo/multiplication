@@ -58,6 +58,20 @@ function getRangeFromRanges<T extends Range>(index: number, ranges: T[]) {
     return null;
 }
 
+function getAllValuesFromRange<T extends Range>(range: T) {
+    const left = Math.min(range.start, range.end);
+
+    const values = Array.from({ length: Math.abs(range.end - range.start) + 1 }, (_, i) => left + i);
+    if (left != range.start) {
+        return values.reverse();
+    }
+    return values;
+}
+
+function getAllValuesFromRanges<T extends Range>(range: T[]) {
+    return range.flatMap((range) => getAllValuesFromRange(range)).sort();
+}
+
 function getRandomValueFromRanges<T extends Range>(ranges: T[]) {
     const { totalData } = getBoundsOfRanges(ranges);
 
@@ -92,10 +106,13 @@ function generateFormula(options: Options) {
     switch (hiddenTerm) {
         case HiddenTerm.MULTIPLICAND:
             answer = multiplicand;
+            break;
         case HiddenTerm.MULTIPLIER:
             answer = multiplier;
+            break;
         case HiddenTerm.RESULT:
             answer = result;
+            break;
     }
 
     return {
@@ -122,4 +139,50 @@ function generateUniqueFormula(options: Options, history?: Formula[], lookBackLe
     return formula;
 }
 
-export { HiddenTerm, generateFormula, generateUniqueFormula };
+function shuffle<T>(array: T[]) {
+    const shuffledArray = [...array];
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffledArray[i], shuffledArray[j]] = [shuffledArray[j], shuffledArray[i]];
+    }
+    return shuffledArray;
+}
+
+function generateQueue(options: Options, sessionHistory: Session[]): Formula[] {
+    const queue: Formula[] = [];
+
+    const multiplicands = getAllValuesFromRanges(options.multiplicandRanges);
+    const multipliers = getAllValuesFromRanges(options.multiplierRanges);
+
+    for (const multiplicand of multiplicands) {
+        for (const hiddenTerm of options.allowedToHide) {
+            for (const multiplier of multipliers) {
+                const result = multiplicand * multiplier;
+                let answer = 0;
+                switch (hiddenTerm) {
+                    case HiddenTerm.MULTIPLICAND:
+                        answer = multiplicand;
+                        break;
+                    case HiddenTerm.MULTIPLIER:
+                        answer = multiplier;
+                        break;
+                    case HiddenTerm.RESULT:
+                        answer = result;
+                        break;
+                }
+
+                queue.push({
+                    multiplicand,
+                    hiddenTerm,
+                    multiplier,
+                    result,
+                    answer,
+                });
+            }
+        }
+    }
+
+    return shuffle(queue);
+}
+
+export { HiddenTerm, generateFormula, generateUniqueFormula, generateQueue };
