@@ -5,12 +5,15 @@ export default function PracticeOptions() {
     const [isOpen, setIsOpen] = useState(true);
     const {
         showAnswerValue,
+        capAnsweringTime,
+
         multiplicandRangesValue,
         multiplierRangesValue,
         multiplicandRangesInvalid,
         multiplierRangesInvalid,
 
         handleShowAnswerChanged,
+        handleCapAnsweringTimeChanged,
         handleMultiplicandRangesChanged,
         handleMultiplierRangesChanged,
     } = useOptions();
@@ -67,6 +70,12 @@ export default function PracticeOptions() {
                                         ${multiplierRangesInvalid ? "border-red-500/80 text-red-500/80" : "border-gray-800 focus:border-blue-500/70"}`}
                                 />
                             </div>
+                        </div>
+                        <div>
+                            <input id="time_cap" type="checkbox" checked={capAnsweringTime} onChange={handleCapAnsweringTimeChanged}></input>
+                            <label htmlFor="time_cap" className="ml-2">
+                                Enable time cap for answering
+                            </label>
                         </div>
                     </div>
                 </div>

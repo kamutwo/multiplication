@@ -5,12 +5,14 @@ import { persistentMap } from "@nanostores/persistent";
 
 const $localOptions = persistentMap("sessionOptions", {
     showAnswer: "true",
+    capAnsweringTime: "false",
     multiplicandInput: "1-20",
     multiplierInput: "1-20",
 });
 
 export default function useOptions() {
     const [showAnswerValue, setShowAnswerValue] = useState($localOptions.get().showAnswer == "true");
+    const [capAnsweringTime, setCapAnsweringTimeValue] = useState($localOptions.get().capAnsweringTime == "true");
     const [multiplicandRangesValue, setMultiplicandRangesValue] = useState($localOptions.get().multiplicandInput);
     const [multiplierRangesValue, setMultiplierRangesValue] = useState($localOptions.get().multiplierInput);
 
@@ -24,6 +26,14 @@ export default function useOptions() {
         $sessionOptions.setKey("showAnswer", newValue);
         $localOptions.setKey("showAnswer", String(newValue));
     };
+
+    const handleCapAnsweringTimeChanged = (_: React.ChangeEvent<HTMLInputElement>) => {
+        const newValue = !capAnsweringTime;
+
+        setCapAnsweringTimeValue(newValue);
+        $sessionOptions.setKey("capAnsweringTime", newValue);
+        $localOptions.setKey("capAnsweringTime", String(newValue));
+    }
 
     const parseTextToRanges = (text: string) => {
         const rangeStrings = text.split(/[\,\s]\s*/g);
@@ -62,18 +72,23 @@ export default function useOptions() {
     };
 
     useEffect(() => {
+        $sessionOptions.setKey("showAnswer", $localOptions.get().showAnswer == "true");
+        $sessionOptions.setKey("capAnsweringTime", $localOptions.get().capAnsweringTime == "true");
         $sessionOptions.setKey("multiplicandRanges", parseTextToRanges(multiplicandRangesValue));
         $sessionOptions.setKey("multiplierRanges", parseTextToRanges(multiplierRangesValue));
     }, []);
 
     return {
         showAnswerValue,
+        capAnsweringTime,
+
         multiplicandRangesValue,
         multiplierRangesValue,
         multiplicandRangesInvalid,
         multiplierRangesInvalid,
 
         handleShowAnswerChanged,
+        handleCapAnsweringTimeChanged,
         handleMultiplicandRangesChanged,
         handleMultiplierRangesChanged,
     };

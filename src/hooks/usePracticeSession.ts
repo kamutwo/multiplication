@@ -16,7 +16,15 @@ export default function usePracticeSession() {
     const pausedDuration = useRef(0);
     const questionTimer = useRef<null | NodeJS.Timeout>(null);
 
+    const spliced = useRef(false);
     const saved = useRef(false);
+
+    const spliceFormulaToQueue = (f: Formula, index: number) => {
+        if (spliced.current) return;
+        spliced.current = true;
+
+        srsQueue.current.splice(index, 0, f);
+    }
 
     const getCardKey = (f: Formula) => `${f.multiplicand}x${f.multiplier}_${f.hiddenTerm}`;
 
@@ -37,7 +45,7 @@ export default function usePracticeSession() {
             nextFormula = generateUniqueFormula(options, formulaHistory, 4);
         }
 
-        if (nextFormula != null) questionTimer.current = setTimeout(() => handleTimeout(nextFormula), 2500);
+        if (nextFormula != null && $sessionOptions.get().capAnsweringTime) questionTimer.current = setTimeout(() => handleTimeout(nextFormula), 2500);
         currentQueue.forEach((f, i) => console.log(i, f.answer));
 
         setFormula(nextFormula);
@@ -46,6 +54,7 @@ export default function usePracticeSession() {
 
         sessionTimestamp.current = Date.now();
         saved.current = false;
+        spliced.current = false;
         tabbedOutTimestamp.current = null;
         pausedDuration.current = 0;
     };
@@ -90,12 +99,12 @@ export default function usePracticeSession() {
                 const baseSpacing = (nextStep + 1) * 4;
                 const insertIndex = Math.max(1, Math.min(baseSpacing, srsQueue.current.length));
 
-                srsQueue.current.splice(insertIndex, 0, formula);
+                spliceFormulaToQueue(formula, insertIndex);
             } else {
                 cardSteps.current[cardKey] = 0;
 
                 const insertIndex = Math.min(4, srsQueue.current.length);
-                srsQueue.current.splice(insertIndex, 0, formula);
+                spliceFormulaToQueue(formula, insertIndex);
             }
         }
 
@@ -108,6 +117,7 @@ export default function usePracticeSession() {
     };
 
     const handleTimeout = (timedOutFormula: Formula) => {
+        if (!$sessionOptions.get().capAnsweringTime) return;
         setIsIncorrect(true);
 
         const session: Session = {
@@ -124,7 +134,7 @@ export default function usePracticeSession() {
             cardSteps.current[cardKey] = 0;
 
             const insertIndex = Math.min(4, srsQueue.current.length);
-            srsQueue.current.splice(insertIndex, 0, timedOutFormula);
+            spliceFormulaToQueue(timedOutFormula, insertIndex);
         }
     };
 

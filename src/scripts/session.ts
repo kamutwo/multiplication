@@ -11,6 +11,7 @@ export type Range = {
 
 export type Options = {
     showAnswer: boolean;
+    capAnsweringTime: boolean;
     multiplicandRanges: Range[];
     multiplierRanges: Range[];
     allowedToHide: HiddenTerm[];

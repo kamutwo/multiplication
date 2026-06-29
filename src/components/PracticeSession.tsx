@@ -13,7 +13,7 @@ export default function PracticeSession() {
         handleAnswer,
         generateSession,
     } = usePracticeSession();
-    const [hideAnswer, setHideAnswer] = useState($sessionOptions.get().showAnswer);
+    const [showAnswer, setShowAnswer] = useState($sessionOptions.get().showAnswer);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const val = e.currentTarget.value;
@@ -42,7 +42,7 @@ export default function PracticeSession() {
     useEffect(() => {
         const unbind = $sessionOptions.listen((_v, _ov, key) => {
             if (key != "showAnswer") return;
-            setHideAnswer($sessionOptions.get().showAnswer);
+            setShowAnswer($sessionOptions.get().showAnswer);
         });
 
         return () => unbind();
@@ -65,7 +65,7 @@ export default function PracticeSession() {
                 className={`py-2 px-4 rounded-md bg-transparent outline-none border text-center
                     ${isIncorrect ? "border-red-500/80 text-red-500/80" : "border-gray-800 focus:border-blue-500/70"}`}
             />
-            {formula != null && isIncorrect && hideAnswer && <p className="mt-1 text-xs text-red-500/80">{formula.answer}</p>}
+            {formula != null && isIncorrect && showAnswer && <p className="mt-1 text-xs text-red-500/80">{formula.answer}</p>}
         </div>
     );
 }

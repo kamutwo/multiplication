@@ -7,6 +7,7 @@ const $localSessionHistory = persistentAtom<string>("sessionHistory", "[]");
 export const $sessionHistory = atom<Session[]>(JSON.parse($localSessionHistory.get()));
 export const $sessionOptions = map<Options>({
     showAnswer: true,
+    capAnsweringTime: false,
     multiplicandRanges: [],
     multiplierRanges: [],
     allowedToHide: [HiddenTerm.RESULT],
